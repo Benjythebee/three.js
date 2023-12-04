@@ -62,7 +62,7 @@ class DRACOLoader extends Loader {
 
 	}
 
-	load( url, onLoad, onProgress, onError ) {
+	load( url, onLoad, onProgress, onError = ()=>{} ) {
 
 		const loader = new FileLoader( this.manager );
 
@@ -79,7 +79,7 @@ class DRACOLoader extends Loader {
 
 	}
 
-	decodeDracoFile( buffer, callback, attributeIDs, attributeTypes ) {
+	decodeDracoFile( buffer, callback, attributeIDs, attributeTypes, onError = () => {}  ) {
 
 		const taskConfig = {
 			attributeIDs: attributeIDs || this.defaultAttributeIDs,
@@ -87,7 +87,7 @@ class DRACOLoader extends Loader {
 			useUniqueIDs: !! attributeIDs
 		};
 
-		return this.decodeGeometry( buffer, taskConfig ).then( callback );
+		return this.decodeGeometry( buffer, taskConfig ).then( callback ).catch( onError );
 
 	}
 
@@ -146,7 +146,12 @@ class DRACOLoader extends Loader {
 				} );
 
 			} )
-			.then( ( message ) => this._createGeometry( message.geometry ) );
+			.then( ( message ) => this._createGeometry( message.geometry ) )
+			.catch( ( error ) => {
+
+				throw new Error( error );
+
+			} );;
 
 		// Remove task from the task list.
 		// Note: replaced '.finally()' with '.catch().then()' block - iOS 11 support (#19416)
